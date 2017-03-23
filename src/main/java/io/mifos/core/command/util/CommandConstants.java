@@ -22,7 +22,7 @@ public interface CommandConstants {
   String COMMAND_SOURCE_TABLE_NAME = "command_source";
 
   String APPLICATION_NAME_PROP = "spring.application.name";
-  String APPLICATION_NAME_DEFAULT = "command/v1";
+  String APPLICATION_NAME_DEFAULT = "command-v1";
 
   String ACTIVEMQ_BROKER_URL_PROP = "activemq.brokerUrl";
   String ACTIVEMQ_BROKER_URL_DEFAULT = "vm://localhost?broker.persistent=false";
