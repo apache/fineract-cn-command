@@ -19,6 +19,7 @@ import com.google.gson.Gson;
 import io.mifos.core.cassandra.core.TenantAwareEntityTemplate;
 import io.mifos.core.command.annotation.Aggregate;
 import io.mifos.core.command.annotation.CommandHandler;
+import io.mifos.core.command.annotation.CommandLogLevel;
 import io.mifos.core.command.annotation.EventEmitter;
 import io.mifos.core.command.domain.CommandHandlerHolder;
 import io.mifos.core.command.domain.CommandProcessingException;
@@ -49,6 +50,7 @@ import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
+import java.util.function.Consumer;
 
 @Component
 public class CommandBus implements ApplicationContextAware {
@@ -83,8 +85,13 @@ public class CommandBus implements ApplicationContextAware {
     CommandHandlerHolder commandHandlerHolder = null;
     try {
       commandHandlerHolder = this.findCommandHandler(command);
+      commandHandlerHolder.logStart(command);
+
       final Object result = commandHandlerHolder.method().invoke(commandHandlerHolder.aggregate(), command);
       this.updateCommandSource(commandSource, null);
+
+      commandHandlerHolder.logFinish(result);
+
       if (commandHandlerHolder.eventEmitter() != null) {
         this.fireEvent(result, commandHandlerHolder.eventEmitter());
       }
@@ -103,8 +110,12 @@ public class CommandBus implements ApplicationContextAware {
     try {
       // find command handling method
       commandHandlerHolder = this.findCommandHandler(command);
+      commandHandlerHolder.logStart(command);
+
       final Object result = commandHandlerHolder.method().invoke(commandHandlerHolder.aggregate(), command);
       this.updateCommandSource(commandSource, null);
+
+      commandHandlerHolder.logFinish(result);
 
       if (commandHandlerHolder.eventEmitter() != null) {
         this.fireEvent(result, commandHandlerHolder.eventEmitter());
@@ -136,15 +147,40 @@ public class CommandBus implements ApplicationContextAware {
   CommandHandlerHolder getCommandHandlerMethodFromClass(final Class<?> commandClass, final Object aggregate) {
     final Method[] methods = aggregate.getClass().getDeclaredMethods();
     for (final Method method : methods) {
-      if (AnnotationUtils.findAnnotation(method, CommandHandler.class) != null
+      final CommandHandler commandHandlerAnnotation = AnnotationUtils.findAnnotation(method, CommandHandler.class);
+      if (commandHandlerAnnotation != null
           && method.getParameterCount() == 1
           && method.getParameterTypes()[0].isAssignableFrom(commandClass)) {
         this.logger.debug("CommandBus::findCommandHandler added method for {}.", commandClass.getSimpleName());
+
+        //Note that as much of the logic of determining how to log as possible is moved into the creation of the
+        //handler holder rather than performing it in the process of handling the command.  Creation of the command
+        //handler holder is not performance critical, but execution of the command is.
+        final Consumer<Object> logStart = getLogHandler(commandHandlerAnnotation.logStart(),
+                "Handling command of type " + commandClass.getCanonicalName() + " for tenant {}, -> command {}");
+
+        final Consumer<Object> logFinish = getLogHandler(commandHandlerAnnotation.logFinish(),
+                "Handled command of type " + commandClass.getCanonicalName() + " for tenant {}, -> result {}");
+
         return new CommandHandlerHolder(aggregate, method, AnnotationUtils.findAnnotation(method, EventEmitter.class),
-            method.getExceptionTypes());
+            method.getExceptionTypes(), logStart, logFinish);
       }
     }
     return null;
+  }
+
+  private Consumer<Object> getLogHandler(final CommandLogLevel level, final String formatString) {
+    switch (level) {
+      case INFO:
+        return (x) -> logger.info(formatString, TenantContextHolder.identifier().orElse("none"), x);
+      case DEBUG:
+        return (x) -> logger.debug(formatString, TenantContextHolder.identifier().orElse("none"), x);
+      case TRACE:
+        return (x) -> logger.trace(formatString, TenantContextHolder.identifier().orElse("none"), x);
+      default:
+      case NONE:
+        return (x) -> { };
+    }
   }
 
   private <C> CommandSource storeCommand(final C command) {
