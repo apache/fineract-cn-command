@@ -15,12 +15,19 @@
  */
 package io.mifos.core.command.annotation;
 
-import java.lang.annotation.*;
+/**
+ * @author Myrle Krantz
+ */
+public enum CommandLogLevel {
 
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.METHOD)
-@Documented
-public @interface CommandHandler {
-  CommandLogLevel logStart() default CommandLogLevel.NONE;
-  CommandLogLevel logFinish() default CommandLogLevel.NONE;
+  INFO("INFO"), DEBUG("DEBUG"), TRACE("TRACE"), NONE("TRACE");
+
+  private final String strVal;
+
+  CommandLogLevel(final String strVal) {
+    this.strVal = strVal;
+  }
+  public String toString() {
+    return strVal;
+  }
 }
