@@ -243,8 +243,14 @@ public class CommandBus implements ApplicationContextAware {
     } else {
       cause = th;
     }
-    this.logger.info(cause.getMessage(), cause);
-    this.updateCommandSource(commandSource, cause.getMessage());
+
+    final String failureMessage = cause.getClass().getSimpleName() + ": "
+        + (cause.getMessage() != null ? cause.getMessage() : "no details available");
+
+    this.logger.warn("Error while processing command. {}", failureMessage);
+
+    this.updateCommandSource(commandSource, failureMessage);
+
     if (declaredExceptions != null) {
       if (Arrays.asList(declaredExceptions).contains(cause.getClass())) {
         if (cause instanceof RuntimeException) {
