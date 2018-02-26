@@ -8,7 +8,7 @@ plugins {
     id 'com.github.hierynomus.license' version '0.13.1'
 }
 
-group 'io.mifos.core'
+group 'org.apache.fineract.cn'
 version '0.1.0-BUILD-SNAPSHOT'
 
 ext.versions = [
@@ -45,9 +45,9 @@ dependencies {
             [group: 'org.springframework', name: 'spring-jms', version: versions.springcontext],
             [group: 'org.apache.activemq', name: 'activemq-spring', version: '5.13.2'],
             [group: 'com.google.code.gson', name: 'gson', version: versions.gson],
-            [group: 'io.mifos.core', name: 'lang', version: versions.frameworklangversion],
-            [group: 'io.mifos.core', name: 'async', version: versions.frameworkasyncversion],
-            [group: 'io.mifos.core', name: 'cassandra', version: versions.frameworkcassandraversion]
+            [group: 'org.apache.fineract.cn', name: 'lang', version: versions.frameworklangversion],
+            [group: 'org.apache.fineract.cn', name: 'async', version: versions.frameworkasyncversion],
+            [group: 'org.apache.fineract.cn', name: 'cassandra', version: versions.frameworkcassandraversion]
     )
 
     testCompile(
