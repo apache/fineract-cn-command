@@ -19,7 +19,6 @@
 package io.mifos.core.command.internal;
 
 import com.google.gson.Gson;
-import io.mifos.core.cassandra.core.TenantAwareEntityTemplate;
 import io.mifos.core.command.annotation.Aggregate;
 import io.mifos.core.command.annotation.CommandHandler;
 import io.mifos.core.command.annotation.CommandLogLevel;
@@ -28,8 +27,9 @@ import io.mifos.core.command.domain.CommandHandlerHolder;
 import io.mifos.core.command.domain.CommandProcessingException;
 import io.mifos.core.command.repository.CommandSource;
 import io.mifos.core.command.util.CommandConstants;
-import io.mifos.core.lang.TenantContextHolder;
-import io.mifos.core.lang.config.TenantHeaderFilter;
+import org.apache.fineract.cn.cassandra.core.TenantAwareEntityTemplate;
+import org.apache.fineract.cn.lang.TenantContextHolder;
+import org.apache.fineract.cn.lang.config.TenantHeaderFilter;
 import org.slf4j.Logger;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;

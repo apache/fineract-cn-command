@@ -19,7 +19,6 @@
 package io.mifos.core.command.domain;
 
 import io.mifos.core.command.annotation.EventEmitter;
-import io.mifos.core.lang.TenantContextHolder;
 
 import java.lang.reflect.Method;
 import java.util.function.Consumer;

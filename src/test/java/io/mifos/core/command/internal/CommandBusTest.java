@@ -20,7 +20,6 @@ package io.mifos.core.command.internal;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import io.mifos.core.cassandra.core.TenantAwareEntityTemplate;
 import io.mifos.core.command.annotation.Aggregate;
 import io.mifos.core.command.annotation.CommandHandler;
 import io.mifos.core.command.domain.CommandHandlerHolder;
@@ -35,6 +34,7 @@ import io.mifos.core.command.fixture.VoidCommand;
 import io.mifos.core.command.fixture.VoidWithEventCommand;
 import io.mifos.core.command.repository.CommandSource;
 import io.mifos.core.command.util.CommandConstants;
+import org.apache.fineract.cn.cassandra.core.TenantAwareEntityTemplate;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
