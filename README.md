@@ -1,6 +1,4 @@
-# Apache Fineract CN Core Command
-
-[![Join the chat at https://gitter.im/mifos-initiative/mifos.io](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/mifos-initiative/mifos.io?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+# Apache Fineract CN Core Command [![Build Status](https://api.travis-ci.com/apache/fineract-cn-command.svg?branch=develop)](https://travis-ci.com/apache/fineract-cn-command)
 
 This project is an umbrella for all Apache Fineract CN Core components.
 
