@@ -32,4 +32,6 @@ public @interface EventEmitter {
   String selectorName();
 
   String selectorValue();
+
+  String selectorNotifyMs();
 }

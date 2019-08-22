@@ -19,12 +19,10 @@
 package org.apache.fineract.cn.command.internal;
 
 import com.google.gson.Gson;
-import org.apache.fineract.cn.command.annotation.Aggregate;
-import org.apache.fineract.cn.command.annotation.CommandHandler;
-import org.apache.fineract.cn.command.annotation.CommandLogLevel;
-import org.apache.fineract.cn.command.annotation.EventEmitter;
+import org.apache.fineract.cn.command.annotation.*;
 import org.apache.fineract.cn.command.domain.CommandHandlerHolder;
 import org.apache.fineract.cn.command.domain.CommandProcessingException;
+import org.apache.fineract.cn.command.domain.NotificationMs;
 import org.apache.fineract.cn.command.repository.CommandSource;
 import org.apache.fineract.cn.command.util.CommandConstants;
 import org.apache.fineract.cn.cassandra.core.TenantAwareEntityTemplate;
@@ -97,11 +95,25 @@ public class CommandBus implements ApplicationContextAware {
 
       if (commandHandlerHolder.eventEmitter() != null) {
         this.fireEvent(result, commandHandlerHolder.eventEmitter());
+        this.checkNotification(command, result, commandHandlerHolder.eventEmitter());
       }
     } catch (final Throwable th) {
       //noinspection ThrowableResultOfMethodCallIgnored
       this.handle(th, commandSource, (commandHandlerHolder != null ? commandHandlerHolder.exceptionTypes() : null));
     }
+  }
+
+  private <C> void checkNotification(C command, Object identifier, EventEmitter eventEmitter) {
+
+    if (eventEmitter.selectorNotifyMs().equals(Notification.NOTIFY.toString())) {
+      String commandName = command.getClass().getCanonicalName();
+      NotificationMs notificationMs = new NotificationMs(commandName, identifier, command);
+      this.saveNotificationMs(notificationMs);
+    }
+  }
+
+  private void saveNotificationMs(NotificationMs notificationMs) {
+    this.tenantAwareEntityTemplate.save(notificationMs);
   }
 
   @Async
