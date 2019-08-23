@@ -59,10 +59,12 @@ repositories {
 
 
 dependencies {
+
     compile(
             [group: 'org.springframework', name: 'spring-context', version: versions.springcontext],
             [group: 'com.google.code.findbugs', name: 'jsr305', version: versions.findbugs],
             [group: 'org.springframework', name: 'spring-jms', version: versions.springcontext],
+            [group: 'org.springframework.data', name: 'spring-data-cassandra', version: '2.1.10.RELEASE'],
             [group: 'org.apache.activemq', name: 'activemq-spring', version: '5.13.2'],
             [group: 'com.google.code.gson', name: 'gson', version: versions.gson],
             [group: 'org.apache.fineract.cn', name: 'lang', version: versions.frameworklangversion],
@@ -71,7 +73,8 @@ dependencies {
     )
 
     testCompile(
-            [group: 'org.springframework.boot', name: 'spring-boot-starter-test', version: versions.springboot]
+            [group: 'org.springframework.boot', name: 'spring-boot-starter-test', version: versions.springboot],
+            [group: 'org.cassandraunit', name: 'cassandra-unit-spring', version: '3.11.2.0']
     )
 }
 

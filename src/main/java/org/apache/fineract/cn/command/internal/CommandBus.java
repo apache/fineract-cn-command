@@ -22,7 +22,7 @@ import com.google.gson.Gson;
 import org.apache.fineract.cn.command.annotation.*;
 import org.apache.fineract.cn.command.domain.CommandHandlerHolder;
 import org.apache.fineract.cn.command.domain.CommandProcessingException;
-import org.apache.fineract.cn.command.domain.NotificationMs;
+import org.apache.fineract.cn.command.domain.CommandNotification;
 import org.apache.fineract.cn.command.repository.CommandSource;
 import org.apache.fineract.cn.command.util.CommandConstants;
 import org.apache.fineract.cn.cassandra.core.TenantAwareEntityTemplate;
@@ -95,25 +95,30 @@ public class CommandBus implements ApplicationContextAware {
 
       if (commandHandlerHolder.eventEmitter() != null) {
         this.fireEvent(result, commandHandlerHolder.eventEmitter());
-        this.checkNotification(command, result, commandHandlerHolder.eventEmitter());
+        this.checkEventNotification(command, result, commandHandlerHolder.eventEmitter());
       }
     } catch (final Throwable th) {
       //noinspection ThrowableResultOfMethodCallIgnored
       this.handle(th, commandSource, (commandHandlerHolder != null ? commandHandlerHolder.exceptionTypes() : null));
+
+      // TODO terminar de pasar los parametros necesarios
+      this.eventNotifierCommandError(th);
     }
   }
 
-  private <C> void checkNotification(C command, Object identifier, EventEmitter eventEmitter) {
+  private <C> void checkEventNotification(C command, Object identifier, EventEmitter eventEmitter) {
 
-    if (eventEmitter.selectorNotifyMs().equals(Notification.NOTIFY.toString())) {
+    if (eventEmitter.selectorEventNotifier().equals(Notification.NOTIFY.toString())) {
+      // some logger here
       String commandName = command.getClass().getCanonicalName();
-      NotificationMs notificationMs = new NotificationMs(commandName, identifier, command);
-      this.saveNotificationMs(notificationMs);
+      CommandNotification commandNotification = new CommandNotification(commandName, identifier, command);
+      this.storeEventNotifier(commandNotification);
     }
   }
 
-  private void saveNotificationMs(NotificationMs notificationMs) {
-    this.tenantAwareEntityTemplate.save(notificationMs);
+  // FIXME Revisar si esto va a quedar con EventSourceing en Cassandra o Kafka
+  private void storeEventNotifier(CommandNotification commandNotification) {
+    this.tenantAwareEntityTemplate.save(commandNotification);
   }
 
   @Async
@@ -276,6 +281,12 @@ public class CommandBus implements ApplicationContextAware {
       }
     }
     return new CommandProcessingException(cause.getMessage(), cause);
+  }
+
+  private void eventNotifierCommandError(final Throwable th) {
+
+    // TODO que tipo de mensaje se debe enviar
+
   }
 
   @Override

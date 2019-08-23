@@ -67,6 +67,8 @@ public class CommandBusTest {
 
     final JmsTemplate mockedJmsTemplate = Mockito.mock(JmsTemplate.class);
 
+    final EventRepository eventRepository = Mockito.mock(EventRepository.class);
+
     final ApplicationContext mockedApplicationContext = Mockito.mock(ApplicationContext.class);
     final HashMap<String, Object> mockedBeans = new HashMap<>();
     mockedBeans.put(DomainAggregate.class.getSimpleName(), new DomainAggregate());
