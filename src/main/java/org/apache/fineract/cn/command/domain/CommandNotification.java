@@ -2,19 +2,13 @@ package org.apache.fineract.cn.command.domain;
 
 public final class CommandNotification {
 
-    private String commandName;
-    private Object identifierMariaDb;
+    private String action;
     private Object command;
-    private NotificationEvent event;
+    private Object identifierMariaDb;
 
-    public CommandNotification(String commandName, Object identifierMariaDb, Object command) {
-        this.commandName = commandName;
-        this.identifierMariaDb = identifierMariaDb;
+    public CommandNotification(String action, Object command, Object identifierMariaDb) {
+        this.action = action;
         this.command = command;
+        this.identifierMariaDb = identifierMariaDb;
     }
-
-    public CommandNotification() {
-
-    }
-
 }

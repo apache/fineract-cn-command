@@ -69,7 +69,12 @@ dependencies {
             [group: 'com.google.code.gson', name: 'gson', version: versions.gson],
             [group: 'org.apache.fineract.cn', name: 'lang', version: versions.frameworklangversion],
             [group: 'org.apache.fineract.cn', name: 'async', version: versions.frameworkasyncversion],
-            [group: 'org.apache.fineract.cn', name: 'cassandra', version: versions.frameworkcassandraversion]
+            [group: 'org.apache.fineract.cn', name: 'cassandra', version: versions.frameworkcassandraversion],
+            
+            // redbee added
+            [group: 'org.springframework.kafka', name: 'spring-kafka', version: '2.2.8.RELEASE'],
+            [group: 'org.springframework.kafka', name: 'spring-kafka-test', version: '2.2.8.RELEASE']
+
     )
 
     testCompile(

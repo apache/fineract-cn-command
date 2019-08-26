@@ -31,4 +31,7 @@ public interface CommandConstants {
   String ACTIVEMQ_BROKER_URL_DEFAULT = "vm://localhost?broker.persistent=false";
   String ACTIVEMQ_CONCURRENCY_PROP = "activemq.concurrency";
   String ACTIVEMQ_CONCURRENCY_DEFAULT = "3-10";
+
+  // redbee added
+  String KAFKA_PRODUCER_CUSTOM = "kafka-producer-custom";
 }

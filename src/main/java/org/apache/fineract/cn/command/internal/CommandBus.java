@@ -23,11 +23,13 @@ import org.apache.fineract.cn.command.annotation.*;
 import org.apache.fineract.cn.command.domain.CommandHandlerHolder;
 import org.apache.fineract.cn.command.domain.CommandProcessingException;
 import org.apache.fineract.cn.command.domain.CommandNotification;
+import org.apache.fineract.cn.command.kafka.KafkaProducer;
 import org.apache.fineract.cn.command.repository.CommandSource;
 import org.apache.fineract.cn.command.util.CommandConstants;
 import org.apache.fineract.cn.cassandra.core.TenantAwareEntityTemplate;
 import org.apache.fineract.cn.lang.TenantContextHolder;
 import org.apache.fineract.cn.lang.config.TenantHeaderFilter;
+import org.apache.kafka.clients.admin.NewTopic;
 import org.slf4j.Logger;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,10 +50,15 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.function.Consumer;
+import java.util.function.Function;
+
+import static org.apache.fineract.cn.command.annotation.NotificationFlag.ACTION_EVENT;
+import static org.apache.fineract.cn.command.annotation.NotificationFlag.NOTIFY;
 
 @Component
 public class CommandBus implements ApplicationContextAware {
@@ -61,22 +68,31 @@ public class CommandBus implements ApplicationContextAware {
   private final Gson gson;
   private final TenantAwareEntityTemplate tenantAwareEntityTemplate;
   private final JmsTemplate jmsTemplate;
-
   private final ConcurrentHashMap<Class, CommandHandlerHolder> cachedCommandHandlers = new ConcurrentHashMap<>();
   private ApplicationContext applicationContext;
+
+  // redbee added
+  private final KafkaProducer kafkaProducer;
+  private final NewTopic topicCustomer;
 
   @Autowired
   public CommandBus(final Environment environment,
                     @Qualifier(CommandConstants.LOGGER_NAME) final Logger logger,
                     @Qualifier(CommandConstants.SERIALIZER) final Gson gson,
                     @SuppressWarnings("SpringJavaAutowiringInspection") TenantAwareEntityTemplate tenantAwareEntityTemplate,
-                    final JmsTemplate jmsTemplate) {
+                    final JmsTemplate jmsTemplate,
+                    final KafkaProducer kafkaProducer,
+                    NewTopic topicCustomer) {
     super();
     this.environment = environment;
     this.logger = logger;
     this.gson = gson;
     this.tenantAwareEntityTemplate = tenantAwareEntityTemplate;
     this.jmsTemplate = jmsTemplate;
+
+    // redbee added
+    this.kafkaProducer = kafkaProducer;
+    this.topicCustomer = topicCustomer;
   }
 
   @Async
@@ -95,7 +111,7 @@ public class CommandBus implements ApplicationContextAware {
 
       if (commandHandlerHolder.eventEmitter() != null) {
         this.fireEvent(result, commandHandlerHolder.eventEmitter());
-        this.checkEventNotification(command, result, commandHandlerHolder.eventEmitter());
+        this.checkEventNotification(command, result, commandHandlerHolder);
       }
     } catch (final Throwable th) {
       //noinspection ThrowableResultOfMethodCallIgnored
@@ -106,19 +122,26 @@ public class CommandBus implements ApplicationContextAware {
     }
   }
 
-  private <C> void checkEventNotification(C command, Object identifier, EventEmitter eventEmitter) {
+  private <C> void checkEventNotification(C command, Object identifierFineract, CommandHandlerHolder commandHandlerHolder) {
 
-    if (eventEmitter.selectorEventNotifier().equals(Notification.NOTIFY.toString())) {
-      // some logger here
-      String commandName = command.getClass().getCanonicalName();
-      CommandNotification commandNotification = new CommandNotification(commandName, identifier, command);
-      this.storeEventNotifier(commandNotification);
+    if (commandHandlerHolder.eventEmitter().selectorName().equals(ACTION_EVENT) &&
+            commandHandlerHolder.eventEmitter().selectorKafaEvent().equals(NOTIFY)) {
+      logger.info("The action executed has to be notify, identifierFineract: {}", identifierFineract);
+      this.sendMessageToTopic(command, identifierFineract, commandHandlerHolder);
     }
+    logger.debug("Nothing to notify to kafka");
   }
 
-  // FIXME Revisar si esto va a quedar con EventSourceing en Cassandra o Kafka
-  private void storeEventNotifier(CommandNotification commandNotification) {
-    this.tenantAwareEntityTemplate.save(commandNotification);
+  private <C> void sendMessageToTopic(C command, Object identifierFineract, CommandHandlerHolder commandHandlerHolder) {
+
+    CommandNotification commandNotification = new CommandNotification(
+            commandHandlerHolder.eventEmitter().selectorValue(),
+            command,
+            identifierFineract
+    );
+    logger.debug("Payload: {}, will be send", commandNotification.toString());
+    this.kafkaProducer.sendMessage(topicCustomer.name(), commandNotification);
+
   }
 
   @Async
