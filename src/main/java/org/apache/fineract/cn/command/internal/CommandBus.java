@@ -48,14 +48,10 @@ import java.lang.reflect.Method;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 import static org.apache.fineract.cn.command.annotation.NotificationFlag.ACTION_EVENT;
 import static org.apache.fineract.cn.command.annotation.NotificationFlag.NOTIFY;
@@ -74,6 +70,7 @@ public class CommandBus implements ApplicationContextAware {
   // redbee added
   private final KafkaProducer kafkaProducer;
   private final NewTopic topicCustomer;
+  private final NewTopic topicErrorCustomer;
 
   @Autowired
   public CommandBus(final Environment environment,
@@ -82,7 +79,8 @@ public class CommandBus implements ApplicationContextAware {
                     @SuppressWarnings("SpringJavaAutowiringInspection") TenantAwareEntityTemplate tenantAwareEntityTemplate,
                     final JmsTemplate jmsTemplate,
                     final KafkaProducer kafkaProducer,
-                    NewTopic topicCustomer) {
+                    NewTopic topicCustomer,
+                    NewTopic topicErrorCustomer) {
     super();
     this.environment = environment;
     this.logger = logger;
@@ -93,6 +91,7 @@ public class CommandBus implements ApplicationContextAware {
     // redbee added
     this.kafkaProducer = kafkaProducer;
     this.topicCustomer = topicCustomer;
+    this.topicErrorCustomer = topicErrorCustomer;
   }
 
   @Async
@@ -108,28 +107,27 @@ public class CommandBus implements ApplicationContextAware {
       this.updateCommandSource(commandSource, null);
 
       commandHandlerHolder.logFinish(result);
+      // redbee added
+      this.checkEventNotification(command, result, commandHandlerHolder);
 
       if (commandHandlerHolder.eventEmitter() != null) {
         this.fireEvent(result, commandHandlerHolder.eventEmitter());
-        this.checkEventNotification(command, result, commandHandlerHolder);
       }
     } catch (final Throwable th) {
       //noinspection ThrowableResultOfMethodCallIgnored
       this.handle(th, commandSource, (commandHandlerHolder != null ? commandHandlerHolder.exceptionTypes() : null));
-
-      // TODO terminar de pasar los parametros necesarios
-      this.eventNotifierCommandError(th);
     }
   }
 
   private <C> void checkEventNotification(C command, Object identifierFineract, CommandHandlerHolder commandHandlerHolder) {
 
-    if (commandHandlerHolder.eventEmitter().selectorName().equals(ACTION_EVENT) &&
-            commandHandlerHolder.eventEmitter().selectorKafaEvent().equals(NOTIFY)) {
+    if (Objects.nonNull(commandHandlerHolder.eventEmitter()) &&
+            ACTION_EVENT.equals(commandHandlerHolder.eventEmitter().selectorName()) &&
+            NOTIFY.equals(commandHandlerHolder.eventEmitter().selectorKafaEvent())) {
       logger.info("The action executed has to be notify, identifierFineract: {}", identifierFineract);
       this.sendMessageToTopic(command, identifierFineract, commandHandlerHolder);
     }
-    logger.debug("Nothing to notify to kafka");
+    logger.debug("Nothing to notify by kafka");
   }
 
   private <C> void sendMessageToTopic(C command, Object identifierFineract, CommandHandlerHolder commandHandlerHolder) {
@@ -294,6 +292,9 @@ public class CommandBus implements ApplicationContextAware {
 
     this.updateCommandSource(commandSource, failureMessage);
 
+    // redbee added
+    this.notifyCommandProcessingError(commandSource);
+
     if (declaredExceptions != null) {
       if (Arrays.asList(declaredExceptions).contains(cause.getClass())) {
         if (cause instanceof RuntimeException) {
@@ -306,10 +307,9 @@ public class CommandBus implements ApplicationContextAware {
     return new CommandProcessingException(cause.getMessage(), cause);
   }
 
-  private void eventNotifierCommandError(final Throwable th) {
+  private void notifyCommandProcessingError(final CommandSource commandSource) {
 
-    // TODO que tipo de mensaje se debe enviar
-
+    this.kafkaProducer.sendMessage(topicErrorCustomer.name(), commandSource);
   }
 
   @Override

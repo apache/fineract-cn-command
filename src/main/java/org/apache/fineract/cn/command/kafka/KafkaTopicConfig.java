@@ -22,6 +22,9 @@ public class KafkaTopicConfig {
     @Value(value = "${kafka.topic.customer:topic_customer}")
     private String topicCustomer;
 
+    @Value(value = "${kafka.topic.error.customer:topic_error_customer}")
+    private String topicErrorCustomer;
+
     @Bean
     public KafkaAdmin kafkaAdmin() {
         Map<String, Object> configs = new HashMap<>();
@@ -33,5 +36,10 @@ public class KafkaTopicConfig {
     @Bean
     public NewTopic topicCustomer() {
         return new NewTopic(topicCustomer, NUM_PARTITIONS, REPLICATION_FACTOR);
+    }
+
+    @Bean
+    public NewTopic topicErrorCustomer() {
+        return new NewTopic(topicErrorCustomer, NUM_PARTITIONS, REPLICATION_FACTOR);
     }
 }
