@@ -309,7 +309,7 @@ public class CommandBus implements ApplicationContextAware {
 
   private void notifyCommandProcessingError(final CommandSource commandSource) {
 
-    logger.error("Error while processing command, sending notification by kafka");
+    logger.error("Sending notification by kafka: processing command error");
     this.kafkaProducer.sendMessage(topicErrorCustomer.name(), commandSource);
   }
 

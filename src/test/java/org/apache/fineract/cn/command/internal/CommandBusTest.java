@@ -32,9 +32,11 @@ import org.apache.fineract.cn.command.fixture.ReturningCommand;
 import org.apache.fineract.cn.command.fixture.ReturningWithEventCommand;
 import org.apache.fineract.cn.command.fixture.VoidCommand;
 import org.apache.fineract.cn.command.fixture.VoidWithEventCommand;
+import org.apache.fineract.cn.command.kafka.KafkaProducer;
 import org.apache.fineract.cn.command.repository.CommandSource;
 import org.apache.fineract.cn.command.util.CommandConstants;
 import org.apache.fineract.cn.cassandra.core.TenantAwareEntityTemplate;
+import org.apache.kafka.clients.admin.NewTopic;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -67,7 +69,9 @@ public class CommandBusTest {
 
     final JmsTemplate mockedJmsTemplate = Mockito.mock(JmsTemplate.class);
 
-    final EventRepository eventRepository = Mockito.mock(EventRepository.class);
+    final KafkaProducer kafkaProducer = Mockito.mock(KafkaProducer.class);
+    final NewTopic topicCustomer = Mockito.mock(NewTopic.class);
+    final NewTopic topicErrorCustomer = Mockito.mock(NewTopic.class);
 
     final ApplicationContext mockedApplicationContext = Mockito.mock(ApplicationContext.class);
     final HashMap<String, Object> mockedBeans = new HashMap<>();
@@ -78,7 +82,7 @@ public class CommandBusTest {
         .thenReturn((DomainAggregate) mockedBeans.get(DomainAggregate.class.getSimpleName()));
 
     final CommandBus commandBus =
-        new CommandBus(mockedEnvironment, mockedLogger, gson, mockedTenantAwareEntityTemplate, mockedJmsTemplate);
+        new CommandBus(mockedEnvironment, mockedLogger, gson, mockedTenantAwareEntityTemplate, mockedJmsTemplate, kafkaProducer, topicCustomer, topicErrorCustomer);
     commandBus.setApplicationContext(mockedApplicationContext);
 
     return new TestHarness(commandBus, mockedTenantAwareEntityTemplate, mockedJmsTemplate);
