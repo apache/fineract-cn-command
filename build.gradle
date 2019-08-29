@@ -85,30 +85,27 @@ dependencies {
 
 publishing {
     publications {
-        commandPublication(MavenPublication) {
+        api(MavenPublication) {
             from components.java
             groupId project.group
             artifactId project.name
             version project.findProperty('externalVersion') ?: project.version
         }
     }
-}
+    repositories {
+        maven {
+            def repo = version.endsWith('SNAPSHOT') ? 'waas-snapshot' : 'waas'
+            url "http://registry-nd.dev.redbee.io/repository/${repo}"
 
-artifactory {
-    contextUrl = System.getenv("ARTIFACTORY_URL")
-    publish {
-        repository {
-            repoKey = project.findProperty('artifactoryRepoKey')
-            username = System.getenv("ARTIFACTORY_USER")
-            password = System.getenv("ARTIFACTORY_PASSWORD")
+            credentials {
+                username = String.valueOf(System.getenv("NEXUS_USER"))
+                password = String.valueOf(System.getenv("NEXUS_PASS"))
+            }
+
         }
-
-        defaults {
-            publications ('commandPublication')
-    }
+      }
 }
-}
-artifactoryPublish.dependsOn('clean','publishToMavenLocal')
+publish.dependsOn('clean','publishToMavenLocal')
 
 jar {
     from sourceSets.main.allSource
