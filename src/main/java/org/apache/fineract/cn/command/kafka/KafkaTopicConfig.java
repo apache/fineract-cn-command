@@ -105,4 +105,34 @@ public class KafkaTopicConfig {
     public NewTopic topicDeathLetter() {
         return new NewTopic(topicDeathLetter, numPartitions, replicaFactor);
     }
+
+
+    /**
+     * Topics name getters
+     */
+
+    public String getTopicCustomer() {
+        return topicCustomer;
+    }
+
+    public String getTopicErrorCustomer() {
+        return topicErrorCustomer;
+    }
+
+    public String getTopicProductDeposit() {
+        return topicProductDeposit;
+    }
+
+    public String getTopicErrorProductDeposit() {
+        return topicErrorProductDeposit;
+    }
+
+    public String getTopicIdentityUser() {
+        return topicIdentityUser;
+    }
+
+    public String getTopicErrorIdentityUser() {
+        return topicErrorIdentityUser;
+    }
+    
 }
