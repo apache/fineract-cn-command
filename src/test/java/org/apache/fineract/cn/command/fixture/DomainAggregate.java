@@ -40,13 +40,13 @@ public class DomainAggregate {
   }
 
   @CommandHandler
-  @EventEmitter(selectorName = "operation", selectorValue = "void", selectorKafaEvent = "not-notify")
+  @EventEmitter(selectorName = "operation", selectorValue = "void", selectorKafkaEvent = "not-notify")
   public String voidWithEventCommand(final VoidWithEventCommand voidWithEventCommand) {
     return "event";
   }
 
   @CommandHandler
-  @EventEmitter(selectorName = "operation", selectorValue = "returning", selectorKafaEvent = "not-notify")
+  @EventEmitter(selectorName = "operation", selectorValue = "returning", selectorKafkaEvent = "not-notify")
   public DomainObject returningWithEventCommand(
       final ReturningWithEventCommand returningWithEventCommand) {
     return returningWithEventCommand.getDomainObject();

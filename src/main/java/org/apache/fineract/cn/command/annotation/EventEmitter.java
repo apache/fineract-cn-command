@@ -33,5 +33,9 @@ public @interface EventEmitter {
 
   String selectorValue();
 
-  String selectorKafaEvent() default NotificationFlag.NOT_NOTIFY;
+  String selectorKafkaEvent() default NotificationFlag.NOT_NOTIFY;
+
+  String selectorKafkaTopic() default NotificationFlag.TOPIC_UNDEFINED;
+
+  String selectorKafkaTopicError() default NotificationFlag.TOPIC_UNDEFINED;
 }

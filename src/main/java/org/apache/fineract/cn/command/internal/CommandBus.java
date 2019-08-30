@@ -19,14 +19,17 @@
 package org.apache.fineract.cn.command.internal;
 
 import com.google.gson.Gson;
-import org.apache.fineract.cn.command.annotation.*;
+import org.apache.fineract.cn.cassandra.core.TenantAwareEntityTemplate;
+import org.apache.fineract.cn.command.annotation.Aggregate;
+import org.apache.fineract.cn.command.annotation.CommandHandler;
+import org.apache.fineract.cn.command.annotation.CommandLogLevel;
+import org.apache.fineract.cn.command.annotation.EventEmitter;
 import org.apache.fineract.cn.command.domain.CommandHandlerHolder;
-import org.apache.fineract.cn.command.domain.CommandProcessingException;
 import org.apache.fineract.cn.command.domain.CommandNotification;
+import org.apache.fineract.cn.command.domain.CommandProcessingException;
 import org.apache.fineract.cn.command.kafka.KafkaProducer;
 import org.apache.fineract.cn.command.repository.CommandSource;
 import org.apache.fineract.cn.command.util.CommandConstants;
-import org.apache.fineract.cn.cassandra.core.TenantAwareEntityTemplate;
 import org.apache.fineract.cn.lang.TenantContextHolder;
 import org.apache.fineract.cn.lang.config.TenantHeaderFilter;
 import org.apache.kafka.clients.admin.NewTopic;
@@ -48,13 +51,15 @@ import java.lang.reflect.Method;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.function.Consumer;
 
-import static org.apache.fineract.cn.command.annotation.NotificationFlag.ACTION_EVENT;
-import static org.apache.fineract.cn.command.annotation.NotificationFlag.NOTIFY;
+import static org.apache.fineract.cn.command.annotation.NotificationFlag.*;
 
 @Component
 public class CommandBus implements ApplicationContextAware {
@@ -69,8 +74,7 @@ public class CommandBus implements ApplicationContextAware {
 
   // redbee added
   private final KafkaProducer kafkaProducer;
-  private final NewTopic topicCustomer;
-  private final NewTopic topicErrorCustomer;
+  private final NewTopic topicDeathLetter;
 
   @Autowired
   public CommandBus(final Environment environment,
@@ -79,19 +83,17 @@ public class CommandBus implements ApplicationContextAware {
                     @SuppressWarnings("SpringJavaAutowiringInspection") TenantAwareEntityTemplate tenantAwareEntityTemplate,
                     final JmsTemplate jmsTemplate,
                     final KafkaProducer kafkaProducer,
-                    NewTopic topicCustomer,
-                    NewTopic topicErrorCustomer) {
+                    final NewTopic topicDeathLetter) {
     super();
     this.environment = environment;
     this.logger = logger;
     this.gson = gson;
     this.tenantAwareEntityTemplate = tenantAwareEntityTemplate;
     this.jmsTemplate = jmsTemplate;
+    this.topicDeathLetter = topicDeathLetter;
 
     // redbee added
     this.kafkaProducer = kafkaProducer;
-    this.topicCustomer = topicCustomer;
-    this.topicErrorCustomer = topicErrorCustomer;
   }
 
   @Async
@@ -115,16 +117,19 @@ public class CommandBus implements ApplicationContextAware {
       }
     } catch (final Throwable th) {
       //noinspection ThrowableResultOfMethodCallIgnored
-      this.handle(th, commandSource, (commandHandlerHolder != null ? commandHandlerHolder.exceptionTypes() : null));
+      String topicErrorNotification = (commandHandlerHolder != null ? commandHandlerHolder.eventEmitter().selectorKafkaTopicError() : topicDeathLetter.name());
+      this.handle(th, commandSource, (commandHandlerHolder != null ? commandHandlerHolder.exceptionTypes() : null), topicErrorNotification);
     }
   }
 
   private <C> void checkEventNotification(C command, Object identifierFineract, CommandHandlerHolder commandHandlerHolder) {
 
+    final String kafkaTopic = commandHandlerHolder.eventEmitter().selectorKafkaTopic();
     if (Objects.nonNull(commandHandlerHolder.eventEmitter()) &&
             ACTION_EVENT.equals(commandHandlerHolder.eventEmitter().selectorName()) &&
-            NOTIFY.equals(commandHandlerHolder.eventEmitter().selectorKafaEvent())) {
-      logger.info("The action executed has to be notify, identifierFineract: {}", identifierFineract);
+            NOTIFY.equals(commandHandlerHolder.eventEmitter().selectorKafkaEvent()) &&
+            !TOPIC_UNDEFINED.equals(kafkaTopic)) {
+      logger.info("The action executed has to be notify, identifierFineract: {}, kafka topic ({})", identifierFineract, kafkaTopic);
       this.sendMessageToTopic(command, identifierFineract, commandHandlerHolder);
     }
     logger.debug("Nothing to notify by kafka");
@@ -137,9 +142,10 @@ public class CommandBus implements ApplicationContextAware {
             command,
             identifierFineract
     );
-    logger.debug("Payload: {}, will be send", commandNotification.toString());
-    this.kafkaProducer.sendMessage(topicCustomer.name(), commandNotification);
+    logger.debug("Payload: {}, will be send to Kafka topic ({}) ", commandNotification.toString(), commandHandlerHolder.eventEmitter().selectorKafkaTopic());
 
+    // FIXME la key deberia ser un string (el identifier del "email") mejorar esto para que no quede un toString()
+    this.kafkaProducer.sendMessage(commandHandlerHolder.eventEmitter().selectorKafkaTopic(), commandNotification.getIdentifier().toString(), commandNotification);
   }
 
   @Async
@@ -157,6 +163,8 @@ public class CommandBus implements ApplicationContextAware {
       this.updateCommandSource(commandSource, null);
 
       commandHandlerHolder.logFinish(result);
+      // redbee added
+      this.checkEventNotification(command, result, commandHandlerHolder);
 
       if (commandHandlerHolder.eventEmitter() != null) {
         this.fireEvent(result, commandHandlerHolder.eventEmitter());
@@ -164,7 +172,8 @@ public class CommandBus implements ApplicationContextAware {
 
       return new AsyncResult<>(clazz.cast(result));
     } catch (final Throwable th) {
-      throw this.handle(th, commandSource, (commandHandlerHolder != null ? commandHandlerHolder.exceptionTypes() : null));
+      String topicErrorNotification = (commandHandlerHolder != null ? commandHandlerHolder.eventEmitter().selectorKafkaTopicError() : topicDeathLetter.name());
+      throw this.handle(th, commandSource, (commandHandlerHolder != null ? commandHandlerHolder.exceptionTypes() : null), topicErrorNotification);
     }
   }
 
@@ -277,7 +286,7 @@ public class CommandBus implements ApplicationContextAware {
   }
 
   private CommandProcessingException handle(final Throwable th, final CommandSource commandSource,
-                                            final Class<?>[] declaredExceptions) {
+                                            final Class<?>[] declaredExceptions, final String topicErrorNotification) {
     final Throwable cause;
     if (th.getClass().isAssignableFrom(InvocationTargetException.class)) {
       cause = th.getCause();
@@ -293,7 +302,7 @@ public class CommandBus implements ApplicationContextAware {
     this.updateCommandSource(commandSource, failureMessage);
 
     // redbee added
-    this.notifyCommandProcessingError(commandSource);
+    this.notifyCommandProcessingError(commandSource, topicErrorNotification);
 
     if (declaredExceptions != null) {
       if (Arrays.asList(declaredExceptions).contains(cause.getClass())) {
@@ -307,10 +316,10 @@ public class CommandBus implements ApplicationContextAware {
     return new CommandProcessingException(cause.getMessage(), cause);
   }
 
-  private void notifyCommandProcessingError(final CommandSource commandSource) {
+  private void notifyCommandProcessingError(final CommandSource commandSource, final String topicErrorNotification) {
 
-    logger.error("Sending notification by kafka: processing command error");
-    this.kafkaProducer.sendMessage(topicErrorCustomer.name(), commandSource);
+    logger.error("Sending notification by kafka, topic ({}): processing command error", topicErrorNotification);
+    this.kafkaProducer.sendMessage(topicErrorNotification, null, commandSource);
   }
 
   @Override

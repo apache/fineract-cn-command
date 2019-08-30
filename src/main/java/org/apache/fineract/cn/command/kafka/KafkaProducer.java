@@ -47,13 +47,13 @@ public class KafkaProducer {
         this.kafkaTemplate = kafkaTemplate;
     }
 
-    public void sendMessage(String topic, Object message) {
+    public void sendMessage(String topic, String key, Object message) {
 
         // TODO inverstigar reduccion de tamaño objecto
         String payload = this.gson.toJson(message);
         logger.info(String.format("$$ -> Producing json message --> %s", payload));
 
-        ListenableFuture<SendResult<String, String>> future = this.kafkaTemplate.send(topic, payload);
+        ListenableFuture<SendResult<String, String>> future = this.kafkaTemplate.send(topic, key, payload);
 
         future.addCallback(new ListenableFutureCallback<SendResult<String, String>>() {
 

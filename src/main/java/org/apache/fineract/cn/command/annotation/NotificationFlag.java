@@ -24,5 +24,6 @@ public interface NotificationFlag {
     String NOT_NOTIFY = "not-notify";
 
     String ACTION_EVENT = "action";
+    String TOPIC_UNDEFINED = "";
 
 }

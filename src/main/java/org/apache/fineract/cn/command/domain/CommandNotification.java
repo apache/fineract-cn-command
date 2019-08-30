@@ -22,11 +22,35 @@ public final class CommandNotification {
 
     private String action;
     private Object command;
-    private Object identifierMariaDb;
+    private Object identifier;
 
-    public CommandNotification(String action, Object command, Object identifierMariaDb) {
+    public CommandNotification(String action, Object command, Object identifier) {
         this.action = action;
         this.command = command;
-        this.identifierMariaDb = identifierMariaDb;
+        this.identifier = identifier;
+    }
+
+    public String getAction() {
+        return action;
+    }
+
+    public void setAction(String action) {
+        this.action = action;
+    }
+
+    public Object getCommand() {
+        return command;
+    }
+
+    public void setCommand(Object command) {
+        this.command = command;
+    }
+
+    public Object getIdentifier() {
+        return identifier;
+    }
+
+    public void setIdentifier(Object identifier) {
+        this.identifier = identifier;
     }
 }
