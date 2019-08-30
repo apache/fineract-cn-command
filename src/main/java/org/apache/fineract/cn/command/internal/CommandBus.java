@@ -109,15 +109,18 @@ public class CommandBus implements ApplicationContextAware {
       this.updateCommandSource(commandSource, null);
 
       commandHandlerHolder.logFinish(result);
-      // redbee added
-      this.checkEventNotification(command, result, commandHandlerHolder);
 
       if (commandHandlerHolder.eventEmitter() != null) {
+        // redbee added
+        this.checkEventNotification(command, result, commandHandlerHolder);
+
         this.fireEvent(result, commandHandlerHolder.eventEmitter());
       }
     } catch (final Throwable th) {
       //noinspection ThrowableResultOfMethodCallIgnored
-      String topicErrorNotification = (commandHandlerHolder != null ? commandHandlerHolder.eventEmitter().selectorKafkaTopicError() : topicDeathLetter.name());
+      String topicErrorNotification = (commandHandlerHolder != null && Objects.nonNull(commandHandlerHolder.eventEmitter())
+              ? commandHandlerHolder.eventEmitter().selectorKafkaTopicError()
+              : topicDeathLetter.name());
       this.handle(th, commandSource, (commandHandlerHolder != null ? commandHandlerHolder.exceptionTypes() : null), topicErrorNotification);
     }
   }
@@ -163,16 +166,19 @@ public class CommandBus implements ApplicationContextAware {
       this.updateCommandSource(commandSource, null);
 
       commandHandlerHolder.logFinish(result);
-      // redbee added
-      this.checkEventNotification(command, result, commandHandlerHolder);
 
       if (commandHandlerHolder.eventEmitter() != null) {
+        // redbee added
+        this.checkEventNotification(command, result, commandHandlerHolder);
+
         this.fireEvent(result, commandHandlerHolder.eventEmitter());
       }
 
       return new AsyncResult<>(clazz.cast(result));
     } catch (final Throwable th) {
-      String topicErrorNotification = (commandHandlerHolder != null ? commandHandlerHolder.eventEmitter().selectorKafkaTopicError() : topicDeathLetter.name());
+      String topicErrorNotification = (commandHandlerHolder != null && Objects.nonNull(commandHandlerHolder.eventEmitter())
+              ? commandHandlerHolder.eventEmitter().selectorKafkaTopicError()
+              : topicDeathLetter.name());
       throw this.handle(th, commandSource, (commandHandlerHolder != null ? commandHandlerHolder.exceptionTypes() : null), topicErrorNotification);
     }
   }

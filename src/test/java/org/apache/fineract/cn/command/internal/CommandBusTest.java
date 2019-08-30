@@ -70,8 +70,7 @@ public class CommandBusTest {
     final JmsTemplate mockedJmsTemplate = Mockito.mock(JmsTemplate.class);
 
     final KafkaProducer kafkaProducer = Mockito.mock(KafkaProducer.class);
-    final NewTopic topicCustomer = Mockito.mock(NewTopic.class);
-    final NewTopic topicErrorCustomer = Mockito.mock(NewTopic.class);
+    final NewTopic topicDeathLetter = Mockito.mock(NewTopic.class);
 
     final ApplicationContext mockedApplicationContext = Mockito.mock(ApplicationContext.class);
     final HashMap<String, Object> mockedBeans = new HashMap<>();
@@ -82,7 +81,7 @@ public class CommandBusTest {
         .thenReturn((DomainAggregate) mockedBeans.get(DomainAggregate.class.getSimpleName()));
 
     final CommandBus commandBus =
-        new CommandBus(mockedEnvironment, mockedLogger, gson, mockedTenantAwareEntityTemplate, mockedJmsTemplate, kafkaProducer, topicCustomer, topicErrorCustomer);
+        new CommandBus(mockedEnvironment, mockedLogger, gson, mockedTenantAwareEntityTemplate, mockedJmsTemplate, kafkaProducer, topicDeathLetter);
     commandBus.setApplicationContext(mockedApplicationContext);
 
     return new TestHarness(commandBus, mockedTenantAwareEntityTemplate, mockedJmsTemplate);
