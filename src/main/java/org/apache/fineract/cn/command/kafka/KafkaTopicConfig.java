@@ -36,10 +36,10 @@ public class KafkaTopicConfig {
     private String bootstrapAddress;
 
     @Value(value = "${kafka.num.partitions:3}")
-    private static Integer numPartitions;
+    private Integer numPartitions;
 
     @Value(value = "${kafka.replica.factor:1}")
-    private static Short replicaFactor = 1;
+    private Short replicaFactor;
 
     @Value(value = "${kafka.topic.customer:topic_customer}")
     private String topicCustomer;
@@ -134,5 +134,5 @@ public class KafkaTopicConfig {
     public String getTopicErrorIdentityUser() {
         return topicErrorIdentityUser;
     }
-    
+
 }
