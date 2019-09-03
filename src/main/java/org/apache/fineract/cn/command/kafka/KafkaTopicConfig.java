@@ -32,7 +32,7 @@ import java.util.Map;
 public class KafkaTopicConfig {
 
     // TODO parametrizar TODO por cloud config
-    @Value(value = "${kafka.bootstrapAddress:localhost:2181}")
+    @Value(value = "${kafka.bootstrapAddress:http://kafka.default:9092}")
     private String bootstrapAddress;
 
     @Value(value = "${kafka.num.partitions:3}")

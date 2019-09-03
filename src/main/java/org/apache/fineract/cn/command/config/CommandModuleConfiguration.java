@@ -20,10 +20,10 @@ package org.apache.fineract.cn.command.config;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import org.apache.fineract.cn.command.util.CommandConstants;
 import org.apache.activemq.command.ActiveMQTopic;
 import org.apache.activemq.jms.pool.PooledConnectionFactory;
 import org.apache.activemq.spring.ActiveMQConnectionFactory;
+import org.apache.fineract.cn.command.util.CommandConstants;
 import org.apache.fineract.cn.lang.ApplicationName;
 import org.apache.fineract.cn.lang.config.EnableApplicationName;
 import org.slf4j.Logger;

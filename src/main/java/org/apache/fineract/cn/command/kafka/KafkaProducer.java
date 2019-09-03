@@ -39,8 +39,8 @@ public class KafkaProducer {
 
     @Autowired
     public KafkaProducer(@Qualifier(CommandConstants.LOGGER_NAME) final Logger logger,
-                         @Qualifier(CommandConstants.KAFKA_TEMPLATE_CUSTOM) KafkaTemplate<String, String> kafkaTemplate,
-                         Gson gson) {
+                         @Qualifier(CommandConstants.KAFKA_TEMPLATE_CUSTOM) final KafkaTemplate<String, String> kafkaTemplate,
+                         @Qualifier(CommandConstants.SERIALIZER) final Gson gson) {
 
         this.logger = logger;
         this.gson = gson;

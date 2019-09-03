@@ -28,7 +28,7 @@ plugins {
 }
 
 group 'org.apache.fineract.cn'
-version '0.1.0-BUILD-SNAPSHOT'
+version '0.1.2-BUILD-SNAPSHOT'
 
 ext.versions = [
         springcontext             : '4.3.3.RELEASE',
@@ -71,14 +71,15 @@ dependencies {
             [group: 'org.apache.fineract.cn', name: 'cassandra', version: versions.frameworkcassandraversion],
             
             // redbee added
-            [group: 'org.springframework.kafka', name: 'spring-kafka', version: '2.2.8.RELEASE'],
-            [group: 'org.springframework.kafka', name: 'spring-kafka-test', version: '2.2.8.RELEASE']
-
+            [group: 'org.springframework.kafka', name: 'spring-kafka', version: '2.2.8.RELEASE']
     )
 
     testCompile(
             [group: 'org.springframework.boot', name: 'spring-boot-starter-test', version: versions.springboot],
-            [group: 'org.cassandraunit', name: 'cassandra-unit-spring', version: '3.11.2.0']
+            [group: 'org.cassandraunit', name: 'cassandra-unit-spring', version: '3.11.2.0'],
+            
+            // redbee added
+            [group: 'org.springframework.kafka', name: 'spring-kafka-test', version: '2.2.8.RELEASE']
     )
 }
 
