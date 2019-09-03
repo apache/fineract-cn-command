@@ -82,7 +82,7 @@ public class CommandBus implements ApplicationContextAware {
                     @Qualifier(CommandConstants.SERIALIZER) final Gson gson,
                     @SuppressWarnings("SpringJavaAutowiringInspection") TenantAwareEntityTemplate tenantAwareEntityTemplate,
                     final JmsTemplate jmsTemplate,
-                    final KafkaProducer kafkaProducer,
+                    @Qualifier(CommandConstants.KAFKA_PRODUCER_CUSTOM) final KafkaProducer kafkaProducer,
                     final NewTopic topicDeathLetter) {
     super();
     this.environment = environment;

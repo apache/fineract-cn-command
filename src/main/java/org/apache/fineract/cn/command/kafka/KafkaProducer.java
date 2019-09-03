@@ -26,11 +26,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.util.concurrent.ListenableFutureCallback;
 
-@Service
+@Component(CommandConstants.KAFKA_PRODUCER_CUSTOM)
 public class KafkaProducer {
 
     private final Logger logger;
@@ -39,7 +39,7 @@ public class KafkaProducer {
 
     @Autowired
     public KafkaProducer(@Qualifier(CommandConstants.LOGGER_NAME) final Logger logger,
-                         @Qualifier(CommandConstants.KAFKA_PRODUCER_CUSTOM) KafkaTemplate<String, String> kafkaTemplate,
+                         @Qualifier(CommandConstants.KAFKA_TEMPLATE_CUSTOM) KafkaTemplate<String, String> kafkaTemplate,
                          Gson gson) {
 
         this.logger = logger;
