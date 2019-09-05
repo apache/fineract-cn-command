@@ -28,6 +28,7 @@ import org.apache.fineract.cn.command.domain.CommandHandlerHolder;
 import org.apache.fineract.cn.command.domain.CommandNotification;
 import org.apache.fineract.cn.command.domain.CommandProcessingException;
 import org.apache.fineract.cn.command.kafka.KafkaProducer;
+import org.apache.fineract.cn.command.kafka.KafkaTopicConstants;
 import org.apache.fineract.cn.command.repository.CommandSource;
 import org.apache.fineract.cn.command.util.CommandConstants;
 import org.apache.fineract.cn.lang.TenantContextHolder;
@@ -74,7 +75,6 @@ public class CommandBus implements ApplicationContextAware {
 
   // redbee added
   private final KafkaProducer kafkaProducer;
-  private final NewTopic topicDeathLetter;
 
   @Autowired
   public CommandBus(final Environment environment,
@@ -82,15 +82,13 @@ public class CommandBus implements ApplicationContextAware {
                     @Qualifier(CommandConstants.SERIALIZER) final Gson gson,
                     @SuppressWarnings("SpringJavaAutowiringInspection") TenantAwareEntityTemplate tenantAwareEntityTemplate,
                     final JmsTemplate jmsTemplate,
-                    @Qualifier(CommandConstants.KAFKA_PRODUCER_CUSTOM) final KafkaProducer kafkaProducer,
-                    final NewTopic topicDeathLetter) {
+                    @Qualifier(CommandConstants.KAFKA_PRODUCER_CUSTOM) final KafkaProducer kafkaProducer) {
     super();
     this.environment = environment;
     this.logger = logger;
     this.gson = gson;
     this.tenantAwareEntityTemplate = tenantAwareEntityTemplate;
     this.jmsTemplate = jmsTemplate;
-    this.topicDeathLetter = topicDeathLetter;
 
     // redbee added
     this.kafkaProducer = kafkaProducer;
@@ -120,7 +118,7 @@ public class CommandBus implements ApplicationContextAware {
       //noinspection ThrowableResultOfMethodCallIgnored
       String topicErrorNotification = (commandHandlerHolder != null && Objects.nonNull(commandHandlerHolder.eventEmitter())
               ? commandHandlerHolder.eventEmitter().selectorKafkaTopicError()
-              : topicDeathLetter.name());
+              : KafkaTopicConstants.TOPIC_DEATH_LETTER);
       this.handle(th, commandSource, (commandHandlerHolder != null ? commandHandlerHolder.exceptionTypes() : null), topicErrorNotification);
     }
   }
@@ -178,7 +176,7 @@ public class CommandBus implements ApplicationContextAware {
     } catch (final Throwable th) {
       String topicErrorNotification = (commandHandlerHolder != null && Objects.nonNull(commandHandlerHolder.eventEmitter())
               ? commandHandlerHolder.eventEmitter().selectorKafkaTopicError()
-              : topicDeathLetter.name());
+              : KafkaTopicConstants.TOPIC_DEATH_LETTER);
       throw this.handle(th, commandSource, (commandHandlerHolder != null ? commandHandlerHolder.exceptionTypes() : null), topicErrorNotification);
     }
   }

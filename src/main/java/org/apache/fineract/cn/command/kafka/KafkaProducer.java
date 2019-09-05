@@ -59,11 +59,11 @@ public class KafkaProducer {
 
             @Override
             public void onSuccess(SendResult<String, String> result) {
-                System.out.println("Sent message=[" + message + "] with offset=[" + result.getRecordMetadata().offset() + "]");
+                System.out.println("Sent message=[" + message.toString() + "] with offset=[" + result.getRecordMetadata().offset() + "] ; topic:=[" + result.getRecordMetadata().topic() + "]");
             }
             @Override
             public void onFailure(Throwable ex) {
-                System.out.println("Unable to send message=[" + message + "] due to : " + ex.getMessage());
+                System.out.println("Unable to send message=[" + message.toString() + "] due to : " + ex.getMessage());
             }
         });
     }
