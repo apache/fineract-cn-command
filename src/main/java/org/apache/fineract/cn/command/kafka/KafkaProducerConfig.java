@@ -34,7 +34,7 @@ import java.util.Map;
 @Configuration
 public class KafkaProducerConfig {
 
-    @Value(value = "${kafka.bootstrapAddress:localhost:2181}")
+    @Value(value = "${kafka.bootstrapAddress:http://kafka.default:9092}")
     private String bootstrapAddress;
 
     @Bean
