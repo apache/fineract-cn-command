@@ -31,16 +31,16 @@ plugins {
 }
 
 group 'org.apache.fineract.cn'
-version '0.1.0-BUILD-SNAPSHOT'
+version '0.1.x-SNAPSHOT'
 
 ext.versions = [
         springcontext             : '4.3.3.RELEASE',
         springboot                : '1.4.1.RELEASE',
         gson                      : '2.5',
         findbugs                  : '3.0.1',
-        frameworklangversion      : '0.1.0-BUILD-SNAPSHOT',
-        frameworkasyncversion     : '0.1.0-BUILD-SNAPSHOT',
-        frameworkcassandraversion : '0.1.0-BUILD-SNAPSHOT'
+        frameworklangversion      : '0.1.x-SNAPSHOT',
+        frameworkasyncversion     : '0.1.x-SNAPSHOT',
+        frameworkcassandraversion : '0.1.x-SNAPSHOT'
 ]
 
 tasks.withType(JavaCompile) {
