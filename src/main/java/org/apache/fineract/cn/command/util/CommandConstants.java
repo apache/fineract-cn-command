@@ -28,6 +28,8 @@ public interface CommandConstants {
   String APPLICATION_NAME_DEFAULT = "command-v1";
 
   String ACTIVEMQ_BROKER_URL_PROP = "activemq.brokerUrl";
+  String ACTIVEMQ_USERNAME = "activemq.username";
+  String ACTIVEMQ_PASSWORD = "activemq.password";
   String ACTIVEMQ_BROKER_URL_DEFAULT = "vm://localhost?broker.persistent=false";
   String ACTIVEMQ_CONCURRENCY_PROP = "activemq.concurrency";
   String ACTIVEMQ_CONCURRENCY_DEFAULT = "3-10";
