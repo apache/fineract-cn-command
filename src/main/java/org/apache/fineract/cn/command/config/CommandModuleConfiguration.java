@@ -36,6 +36,8 @@ import org.springframework.core.env.Environment;
 import org.springframework.jms.config.DefaultJmsListenerContainerFactory;
 import org.springframework.jms.config.JmsListenerContainerFactory;
 import org.springframework.jms.core.JmsTemplate;
+import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 @Configuration
 @EnableApplicationName
@@ -71,6 +73,11 @@ public class CommandModuleConfiguration {
         this.environment.getProperty(
             CommandConstants.ACTIVEMQ_BROKER_URL_PROP,
             CommandConstants.ACTIVEMQ_BROKER_URL_DEFAULT));
+    if (!StringUtils.isEmpty(this.environment.getProperty(CommandConstants.ACTIVEMQ_USERNAME))) {
+      Assert.hasLength(this.environment.getProperty(CommandConstants.ACTIVEMQ_PASSWORD),"Amqp password is not supplied");
+      activeMQConnectionFactory.setUserName(this.environment.getProperty(CommandConstants.ACTIVEMQ_USERNAME));
+      activeMQConnectionFactory.setPassword(this.environment.getProperty(CommandConstants.ACTIVEMQ_PASSWORD));
+    }
     pooledConnectionFactory.setConnectionFactory(activeMQConnectionFactory);
     return pooledConnectionFactory;
   }
