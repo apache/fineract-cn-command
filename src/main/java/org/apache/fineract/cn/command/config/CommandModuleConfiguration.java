@@ -73,7 +73,7 @@ public class CommandModuleConfiguration {
         this.environment.getProperty(
             CommandConstants.ACTIVEMQ_BROKER_URL_PROP,
             CommandConstants.ACTIVEMQ_BROKER_URL_DEFAULT));
-    if (!StringUtils.isEmpty(this.environment.getProperty(CommandConstants.ACTIVEMQ_USERNAME))) {
+    if (StringUtils.hasLength(this.environment.getProperty(CommandConstants.ACTIVEMQ_USERNAME))) {
       Assert.hasLength(this.environment.getProperty(CommandConstants.ACTIVEMQ_PASSWORD),"Amqp password is not supplied");
       activeMQConnectionFactory.setUserName(this.environment.getProperty(CommandConstants.ACTIVEMQ_USERNAME));
       activeMQConnectionFactory.setPassword(this.environment.getProperty(CommandConstants.ACTIVEMQ_PASSWORD));

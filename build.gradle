@@ -34,12 +34,11 @@ group 'org.apache.fineract.cn'
 version 'spring_boot_2-SNAPSHOT'
 
 ext.versions = [
-        springcontext             : '5.2.5.RELEASE',
-        springboot                : '2.2.6.RELEASE',
+        springcontext             : '5.3.3',
+        springboot                : '2.4.1',
         gson                      : '2.8.6',
-        findbugs                  : '3.0.1',
+        spotbugs                  : '4.2.0',
         frameworklangversion      : 'spring_boot_2-SNAPSHOT',
-        frameworkasyncversion     : 'spring_boot_2-SNAPSHOT',
         frameworkcassandraversion : 'spring_boot_2-SNAPSHOT'
 ]
 
@@ -56,18 +55,17 @@ repositories {
 
 
 dependencies {
-    compile(
+    implementation(
             [group: 'org.springframework', name: 'spring-context', version: versions.springcontext],
-            [group: 'com.google.code.findbugs', name: 'jsr305', version: versions.findbugs],
+            [group: 'com.github.spotbugs', name: 'spotbugs', version: versions.spotbugs],
             [group: 'org.springframework', name: 'spring-jms', version: versions.springcontext],
-            [group: 'org.apache.activemq', name: 'activemq-spring', version: '5.15.12'],
+            [group: 'org.apache.activemq', name: 'activemq-spring', version: '5.16.1'],
             [group: 'com.google.code.gson', name: 'gson', version: versions.gson],
             [group: 'org.apache.fineract.cn', name: 'lang', version: versions.frameworklangversion],
-            [group: 'org.apache.fineract.cn', name: 'async', version: versions.frameworkasyncversion],
             [group: 'org.apache.fineract.cn', name: 'cassandra', version: versions.frameworkcassandraversion]
     )
 
-    testCompile(
+    testImplementation(
             [group: 'org.springframework.boot', name: 'spring-boot-starter-test', version: versions.springboot]
     )
 }
