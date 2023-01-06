@@ -1,4 +1,4 @@
-# Apache Fineract CN Core Command [![Build Status](https://api.travis-ci.com/apache/fineract-cn-command.svg?branch=develop)](https://travis-ci.com/apache/fineract-cn-command)
+# Apache Fineract CN Core Command
 
 This project is an umbrella for all Apache Fineract CN Core components.
 
